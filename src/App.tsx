@@ -18,20 +18,36 @@ const strengths = [
 
 const experienceGroups = [
   {
-    title: "Programming Languages",
-    items: ["Python", "Go", "JavaScript", "TypeScript"]
+    title: "Languages",
+    items: ["Python", "Go"]
   },
   {
-    title: "Frameworks & Libraries",
-    items: ["React", "Angular", "Node.js", "Django"]
+    title: "Web Apps",
+    items: ["JavaScript", "TypeScript"]
   },
   {
-    title: "Tools & Technologies",
-    items: ["Git", "Docker", "Kubernetes", "Terraform"]
+    title: "Frontend",
+    items: ["React", "Angular"]
   },
   {
-    title: "Database Management",
-    items: ["SQL", "MongoDB", "Redis", "PostgreSQL"]
+    title: "Backend",
+    items: ["Node.js", "Django"]
+  },
+  {
+    title: "Workflow",
+    items: ["Git", "Docker"]
+  },
+  {
+    title: "Platform",
+    items: ["Kubernetes", "Terraform"]
+  },
+  {
+    title: "Data",
+    items: ["SQL", "MongoDB"]
+  },
+  {
+    title: "Storage",
+    items: ["Redis", "PostgreSQL"]
   }
 ];
 
@@ -70,6 +86,14 @@ const certifications = [
   { title: "IBM Agile Explorer", issuer: "IBM", issued: "Issued May 2022" },
   { title: "Security and Privacy by Design Foundations", issuer: "IBM", issued: "Issued May 2022" }
 ];
+
+const certificationRows = certifications.reduce<[typeof certifications, typeof certifications]>(
+  (rows, certification, index) => {
+    rows[index % 2].push(certification);
+    return rows;
+  },
+  [[], []]
+);
 
 const industryCompanies = [
   {
@@ -236,35 +260,24 @@ function IndustryScene() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.45, ease: "easeOut" }}
               >
-                <div className="industry-feature-screen">
-                  <div className="industry-feature-logo">{activeCompany.logo}</div>
-                  <div className="industry-feature-copy">
-                    <span>{activeCompany.tag}</span>
+                <div className="industry-feature-copy">
+                  <div className="industry-feature-role-block">
                     <h3>{activeCompany.role}</h3>
-                    <strong>{activeCompany.company}</strong>
-                    <em>{activeCompany.timeframe} · {activeCompany.location}</em>
-                    {activeCompany.extraRole ? (
-                      <div className="industry-feature-secondary-role">
-                        <strong>{activeCompany.extraRole}</strong>
-                        <em>{activeCompany.extraTimeframe}</em>
-                      </div>
-                    ) : null}
-                    <p>{activeCompany.blurb}</p>
+                    <em>{activeCompany.timeframe}</em>
                   </div>
+                  {activeCompany.extraRole ? (
+                    <div className="industry-feature-role-block industry-feature-secondary-role">
+                      <strong>{activeCompany.extraRole}</strong>
+                      <em>{activeCompany.extraTimeframe}</em>
+                    </div>
+                  ) : null}
                 </div>
-
                 <motion.div
                   className="industry-feature-card"
-                  initial={{ opacity: 0, x: 24, y: 12 }}
-                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.08, ease: "easeOut" }}
                 >
-                  <div className="industry-card-heading">
-                    <div className="industry-logo" aria-hidden="true">
-                      {activeCompany.logo}
-                    </div>
-                    <h3>{activeCompany.company}</h3>
-                  </div>
                   <div className="industry-feature-points">
                     {activeCompany.points.map((point) => (
                       <div key={point} className="industry-feature-point">
@@ -308,7 +321,7 @@ function IndustryScene() {
           <div className="certifications-belt">
             <div className="certifications-belt-label">Certifications</div>
             <div
-              className="certifications-marquee"
+              className="certifications-belt-stack"
               onMouseDown={() => setIsCertificationsPaused(true)}
               onMouseUp={() => setIsCertificationsPaused(false)}
               onMouseLeave={() => setIsCertificationsPaused(false)}
@@ -318,23 +331,27 @@ function IndustryScene() {
               onBlur={() => setIsCertificationsPaused(false)}
               tabIndex={0}
             >
-              <div
-                className={`certifications-track ${isCertificationsPaused ? "paused" : ""}`}
-              >
-                {[...certifications, ...certifications].map((certification, index) => (
-                  <article key={`${certification.title}-${index}`} className="certification-card">
-                    <div className="certification-card-top">
-                      <div className="certification-logo" aria-hidden="true">
-                        IBM
+              {certificationRows.map((row, rowIndex) => (
+                <div
+                  key={`cert-row-${rowIndex}`}
+                  className={`certifications-marquee ${rowIndex === 1 ? "reverse" : ""}`}
+                >
+                  <div
+                    className={`certifications-track ${isCertificationsPaused ? "paused" : ""} ${
+                      rowIndex === 1 ? "reverse" : ""
+                    }`}
+                  >
+                    {[...row, ...row].map((certification, index) => (
+                      <div key={`${certification.title}-${rowIndex}-${index}`} className="certification-chip">
+                        <div className="certification-logo" aria-hidden="true">
+                          <span className="certification-logo-core" />
+                        </div>
+                        <span>{certification.title}</span>
                       </div>
-                      <span>{certification.issuer}</span>
-                    </div>
-                    <h4>{certification.title}</h4>
-                    <p>{certification.issued}</p>
-                    <a href="#contact">Show credential</a>
-                  </article>
-                ))}
-              </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -353,30 +370,91 @@ function ExperienceScene() {
   const titleOpacity = useTransform(scrollYProgress, [0.1, 0.24, 0.72], [0, 1, 1]);
   const titleScale = useTransform(scrollYProgress, [0.08, 0.28], [0.92, 1]);
   const titleY = useTransform(scrollYProgress, [0.08, 0.28], ["10vh", "0vh"]);
-  const cardOpacity = useTransform(scrollYProgress, [0.16, 0.28, 0.78], [0, 1, 1]);
 
   const cardTransforms = [
     {
-      x: useTransform(scrollYProgress, [0.14, 0.38], ["-24vw", "0vw"]),
-      y: useTransform(scrollYProgress, [0.14, 0.38], ["18vh", "0vh"]),
-      rotate: "-6deg"
+      x: useTransform(scrollYProgress, [0.12, 0.24, 0.38, 0.62, 0.82], ["-38vw", "-7vw", "0vw", "2vw", "-34vw"]),
+      y: useTransform(scrollYProgress, [0.12, 0.24, 0.38, 0.62, 0.82], ["-22vh", "-3vh", "0vh", "-1vh", "-18vh"]),
+      rotate: useTransform(
+        scrollYProgress,
+        [0.12, 0.24, 0.38, 0.62, 0.82],
+        ["-18deg", "-7deg", "-6deg", "-4deg", "-16deg"]
+      ),
+      scale: useTransform(scrollYProgress, [0.12, 0.24, 0.38, 0.62, 0.82], [0.82, 1.03, 1, 1, 0.88])
     },
     {
-      x: useTransform(scrollYProgress, [0.18, 0.42], ["-8vw", "0vw"]),
-      y: useTransform(scrollYProgress, [0.18, 0.42], ["24vh", "0vh"]),
-      rotate: "3deg"
+      x: useTransform(scrollYProgress, [0.14, 0.26, 0.4, 0.64, 0.84], ["-24vw", "-4vw", "0vw", "1vw", "-18vw"]),
+      y: useTransform(scrollYProgress, [0.14, 0.26, 0.4, 0.64, 0.84], ["-28vh", "2vh", "0vh", "1vh", "-24vh"]),
+      rotate: useTransform(
+        scrollYProgress,
+        [0.14, 0.26, 0.4, 0.64, 0.84],
+        ["-7deg", "5deg", "3deg", "2deg", "11deg"]
+      ),
+      scale: useTransform(scrollYProgress, [0.14, 0.26, 0.4, 0.64, 0.84], [0.86, 1.02, 1, 1, 0.9])
     },
     {
-      x: useTransform(scrollYProgress, [0.22, 0.46], ["8vw", "0vw"]),
-      y: useTransform(scrollYProgress, [0.22, 0.46], ["24vh", "0vh"]),
-      rotate: "-3deg"
+      x: useTransform(scrollYProgress, [0.16, 0.28, 0.42, 0.64, 0.84], ["24vw", "4vw", "0vw", "-1vw", "18vw"]),
+      y: useTransform(scrollYProgress, [0.16, 0.28, 0.42, 0.64, 0.84], ["-28vh", "2vh", "0vh", "1vh", "-24vh"]),
+      rotate: useTransform(
+        scrollYProgress,
+        [0.16, 0.28, 0.42, 0.64, 0.84],
+        ["7deg", "-5deg", "-3deg", "-2deg", "-11deg"]
+      ),
+      scale: useTransform(scrollYProgress, [0.16, 0.28, 0.42, 0.64, 0.84], [0.86, 1.02, 1, 1, 0.9])
     },
     {
-      x: useTransform(scrollYProgress, [0.26, 0.5], ["24vw", "0vw"]),
-      y: useTransform(scrollYProgress, [0.26, 0.5], ["18vh", "0vh"]),
-      rotate: "6deg"
+      x: useTransform(scrollYProgress, [0.18, 0.3, 0.44, 0.62, 0.82], ["38vw", "7vw", "0vw", "-2vw", "34vw"]),
+      y: useTransform(scrollYProgress, [0.18, 0.3, 0.44, 0.62, 0.82], ["-22vh", "-3vh", "0vh", "-1vh", "-18vh"]),
+      rotate: useTransform(
+        scrollYProgress,
+        [0.18, 0.3, 0.44, 0.62, 0.82],
+        ["18deg", "7deg", "6deg", "4deg", "16deg"]
+      ),
+      scale: useTransform(scrollYProgress, [0.18, 0.3, 0.44, 0.62, 0.82], [0.82, 1.03, 1, 1, 0.88])
+    },
+    {
+      x: useTransform(scrollYProgress, [0.14, 0.28, 0.42, 0.64, 0.84], ["-32vw", "-6vw", "0vw", "1vw", "-26vw"]),
+      y: useTransform(scrollYProgress, [0.14, 0.28, 0.42, 0.64, 0.84], ["26vh", "4vh", "0vh", "1vh", "24vh"]),
+      rotate: useTransform(
+        scrollYProgress,
+        [0.14, 0.28, 0.42, 0.64, 0.84],
+        ["-16deg", "-6deg", "-4deg", "-2deg", "-12deg"]
+      ),
+      scale: useTransform(scrollYProgress, [0.14, 0.28, 0.42, 0.64, 0.84], [0.84, 1.03, 1, 1, 0.9])
+    },
+    {
+      x: useTransform(scrollYProgress, [0.18, 0.32, 0.46, 0.68, 0.86], ["-16vw", "-3vw", "0vw", "1vw", "-12vw"]),
+      y: useTransform(scrollYProgress, [0.18, 0.32, 0.46, 0.68, 0.86], ["34vh", "6vh", "0vh", "1vh", "30vh"]),
+      rotate: useTransform(
+        scrollYProgress,
+        [0.18, 0.32, 0.46, 0.68, 0.86],
+        ["-6deg", "4deg", "2deg", "1deg", "9deg"]
+      ),
+      scale: useTransform(scrollYProgress, [0.18, 0.32, 0.46, 0.68, 0.86], [0.88, 1.02, 1, 1, 0.92])
+    },
+    {
+      x: useTransform(scrollYProgress, [0.2, 0.34, 0.48, 0.68, 0.86], ["16vw", "3vw", "0vw", "-1vw", "12vw"]),
+      y: useTransform(scrollYProgress, [0.2, 0.34, 0.48, 0.68, 0.86], ["34vh", "6vh", "0vh", "1vh", "30vh"]),
+      rotate: useTransform(
+        scrollYProgress,
+        [0.2, 0.34, 0.48, 0.68, 0.86],
+        ["6deg", "-4deg", "-2deg", "-1deg", "-9deg"]
+      ),
+      scale: useTransform(scrollYProgress, [0.2, 0.34, 0.48, 0.68, 0.86], [0.88, 1.02, 1, 1, 0.92])
+    },
+    {
+      x: useTransform(scrollYProgress, [0.22, 0.36, 0.5, 0.64, 0.84], ["32vw", "6vw", "0vw", "-1vw", "26vw"]),
+      y: useTransform(scrollYProgress, [0.22, 0.36, 0.5, 0.64, 0.84], ["26vh", "4vh", "0vh", "1vh", "24vh"]),
+      rotate: useTransform(
+        scrollYProgress,
+        [0.22, 0.36, 0.5, 0.64, 0.84],
+        ["16deg", "6deg", "4deg", "2deg", "12deg"]
+      ),
+      scale: useTransform(scrollYProgress, [0.22, 0.36, 0.5, 0.64, 0.84], [0.84, 1.03, 1, 1, 0.9])
     }
   ];
+
+  const cardExitOpacity = useTransform(scrollYProgress, [0.16, 0.28, 0.68, 0.88], [0, 1, 1, 0]);
 
   return (
     <section className="scene-section" id="experience" ref={sectionRef}>
@@ -400,8 +478,9 @@ function ExperienceScene() {
                 style={{
                   x: cardTransforms[index].x,
                   y: cardTransforms[index].y,
-                  opacity: cardOpacity,
-                  rotate: cardTransforms[index].rotate
+                  opacity: cardExitOpacity,
+                  rotate: cardTransforms[index].rotate,
+                  scale: cardTransforms[index].scale
                 }}
               >
                 <div className="experience-card-header">
